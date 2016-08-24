@@ -1,0 +1,115 @@
+##/usr/local/spark目录下
+scp mywork2/Demo_test_1jar.jar cluster_staff@113.55.13.49:/home/cluster_staff/cluster/spark/wangyujie
+
+ssh cluster_staff@113.55.13.49//登录集群，用户名@IP,端口号默认22
+
+ ./bin/hdfs dfs -rm -r /wangyujie/test_one  //删除hdfs上的文件
+./bin/hdfs dfs -mkdir
+./bin/hdfs dfs -put
+./bin/hdfs dfs -get
+
+./bin/hdfs dfs -du -h filename  //查看文件大小，可以时文件夹，也可以是文件
+./bin/hdfs dfs -du -s -h /wangyujie/testData  //计算总的大小
+
+
+./bin/spark-submit --class com.wang.spark.Demo --master spark://113.55.13.49:7077 --executor-memory 14G --driver-memory 2G wangyujie/Demo_1.08G.jar 1
+
+
+
+VRDD.saveAsSequenceFile("hdfs://113.55.13.49:9000/wangyujie/VerticesRDD")
+ERDD.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/EdgesRDD_11G")
+
+val one = sc.objectFile[Edge[Int]]("")
+
+movielens数据：
+	val userData = sc.textFile("/root/data/ml-100k/u.user").map(_.split(" ")).map(x =	> x(0).split('|')).map(x => (x(0).toLong*10000, x(1)))
+	val itemData = sc.textFile("/root/data/ml-100k/u.item").map(_.split(" ")).map(x => x(0).split('|')).map(x => (x(0).toLong, x(1)))
+	val VRDD = userData.union(itemData)
+	val ERDD = sc.textFile("/root/data/ml-100k/u.data").map(_.split(" ")).map(x => x(0).split("\t")).map(x => Edge(x(0).toLong*10000, x(1).toLong, x(2)))
+	val graph = Graph(VRDD, ERDD, "")
+	val outDegree = graph.collectNeighbors(EdgeDirection.Out)
+	val inDegree = graph.collectNeighbors(EdgeDirection.In)
+
+hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData
+读取文件对象
+ userData = sc.objectFile[(VertexId, Array[(VertexId, String)])]("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData")
+
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_3.6G/1")
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_3.6G/2")
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_3.6G/3")
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_3.6G/4")
+
+
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_4.5G/1")
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_4.5G/2")
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_4.5G/3")
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_4.5G/4")
+one.saveAsObjectFile("hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_4.5G/5")
+
+./bin/spark-submit --class com.wang.spark.HillClimbing --master spark://113.55.13.49:7077 --executor-memory 14G wangyujie/HillClimbingTest.jar hdfs://113.55.13.49:9000/wangyujie/hillClimbing/userData_2.4G
+
+
+validGraph.triplets.map(triplet => triplet.srcAttr._1 + " is the " + triplet.attr + " of " + triplet.dstAttr._1).collect.foreach(println(_))
+
+//org.apache.spark.mllib.linalg.Matrices
+创建一个矩阵对象，然后再调用方法，如one.ones(2,2)
+val one = Matrices
+
+//构造“无向图”的一种方法，让每条边均有两种指向
+val edgeSeq = Seq((1, 2), (1, 5), (2, 3), (2, 5), (3, 4), (4, 5), (4, 6)).flatMap {
+            case e => Seq(e, e.swap)
+        }
+
+//    //一种构建“无向图”的方法
+//    val edgesSeq = sc.textFile(edgesPath).map(_.split(" ")).map(x => x(0).split(",")).map(x => (x(0).toLong, x(1).toLong)).flatMap(e => Seq(e, e.swap))
+//    val graphSeq = Graph.fromEdgeTuples(edgesSeq, 1)
+
+//求最短路径
+val landmarks = Seq(1, 4).map(_.toLong)
+val results = ShortestPaths.run(graph, landmarks).vertices.collect
+//结果是这样的
+val shortestPaths = Set(
+        (1, Map(1 -> 0, 4 -> 2)), (2, Map(1 -> 1, 4 -> 2)), (3, Map(1 -> 2, 4 -> 1)),
+        (4, Map(1 -> 2, 4 -> 0)), (5, Map(1 -> 1, 4 -> 1)), (6, Map(1 -> 3, 4 -> 1)))
+
+
+./bin/hdfs dfs -put ~/cluster/spark/wangyujie/data1.txt /wangyujie/wuhong/
+
+neigh.map(x => x._2.length).collect.foreach(println)
+
+//解除安全模式
+./bin/hadoop dfsadmin -safemode leave
+
+//获取子图
+val validGraph = graph.subgraph(vpred = (id, attr) => attr._2 != "Missing")
+
+//设置日志
+
+import org.apache.log4j.{Level, Logger}
+
+import org.apache.spark.{SparkContext, SparkConf}
+
+import org.apache.spark.graphx._
+
+import org.apache.spark.rdd.RDD
+
+ 
+
+object GraphXExample {
+
+  def main(args: Array[String]) {
+
+    //屏蔽日志
+
+    Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
+
+    Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
+
+./bin/spark-submit --class com.wu.spark.KShellPara --master spark://113.55.13.49:7077 --executor-memory 14G --driver-memory 6G wangyujie/KShell_2.jar hdfs://113.55.13.49:9000/wangyujie/data1.txt
+
+val neighbours = graph.aggregateMessages[Array[VertexId]](ctx => {ctx.sendToDst(Array(ctx.srcId)); ctx.sendToSrc(Array(ctx.dstId))}, (A, B) => A.union(B))
+
+./bin/spark-submit --class com.wu.spark.SelectSeeds --master spark://113.55.13.49:7077 --executor-memory 14G --driver-memory 6G wangyujie/KShell_1.jar hdfs://113.55.13.49:9000/wangyujie/graphFromdata1.txt
+
+./bin/spark-submit --class com.wu.spark.SelectSeeds --master spark://113.55.13.49:7077 --executor-memory 14G --driver-memory 12G wangyujie/KShell_1.jar hdfs://113.55.13.49:9000/wangyujie/graphFromdata1.txt 30 0.9
+
